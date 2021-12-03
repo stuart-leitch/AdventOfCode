@@ -49,16 +49,9 @@ print "power_consumption: #{power_consumption}\n\n"
 # Part 2 - Life Support
 
 def count_ones_and_zeroes(inarray,pos)
-    zeroes = 0
-    ones = 0
+    ones =   inarray.select{|v| v[pos] == 1}.length
+    zeroes = inarray.select{|v| v[pos] == 0}.length
 
-    inarray.each do |v|
-        if v[pos] == 0 then
-            zeroes+=1
-        else
-            ones+=1
-        end
-    end
     return zeroes, ones
 end
 
