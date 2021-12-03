@@ -5,6 +5,7 @@ depth = 0
 v = 0
 d=0
 c=0
+aim = 0
 
 moves.each { |move|
     v += 1
@@ -15,10 +16,11 @@ moves.each { |move|
     print "#{v} : #{d} :  #{c.to_i} : "
     if d == "forward" then
         fwd += c
+        depth += aim * c
     elsif d == "up" then
-        depth -= c
-    else
-        depth += c
+        aim -= c
+    elsif d = "down" then
+        aim += c
     end
     print "\n"
 }
