@@ -1,26 +1,21 @@
-# input = "test_input"
-input = "input"
+input = "test_input"
+# input = "input"
+# readings = File.readlines(input)
 
+readings = File.readlines(input).map { |line| line.chomp.chars.map(&:to_i) }
+
+# Part 1 - Power Consumption
 zeros = []
 ones = []
-
-readings = File.readlines(input)
-
 readings.each { |reading|
-    reading.strip!
-    # puts reading
-
-    value = reading.chars
-
-    value.each_with_index do |v,i|
+    reading.each_with_index do |v,i|
         zeros[i] = 0 if zeros[i].nil?
         ones[i] = 0 if ones[i].nil?
 
-        # p "#{i}:#{v}"
-        if v == "0" then
-            zeros[i] = zeros[i] + 1
-        elsif v=="1" then
-            ones[i] = ones[i] + 1
+        if v == 0 then
+            zeros[i] += 1
+        elsif v==1 then
+            ones[i] +=  1
         end
     end
 
@@ -31,7 +26,6 @@ print "ones:  #{ones} \n"
 
 gamma = []
 epsilon = []
-
 zeros.each_with_index do |v,i|
     if zeros[i] > ones[i] then
         gamma[i] = 0
@@ -51,94 +45,61 @@ print "epsilon: #{epsilon} (#{e})\n"
 power_consumption = g*e
 print "power_consumption: #{power_consumption}\n\n"
 
-pos = 0
-val=[]
-ogen = readings
 
-while ogen.length > 1 do
-print "ogen: #{ogen}\n"
-    ogen_next = []
+# Part 2 - Life Support
 
-    z = 0
-    o = 0
+def count_ones_and_zeroes(inarray,pos)
+    zeroes = 0
+    ones = 0
 
-    ogen.each do |v|
-        v.strip!
-        val = v.chars
-        if val[pos] == "0" then
-            z +=1
+    inarray.each do |v|
+        if v[pos] == 0 then
+            zeroes+=1
         else
-            o +=1
+            ones+=1
         end
     end
-    if o < z then
-        crit = "0"
-    else 
-        crit = "1"
-    end
-    print "pos  #{[pos]}, Zeroes: #{z}, Ones: #{o}, Crit: #{crit}\n"
-    
-
-    ogen.each do |v|
-        v.strip!
-        val = v.chars
-        print "pos: #{pos} val: #{val} gamma: #{gamma} "
-        print "val: #{val[pos]} gamma: #{gamma[pos]}"
-        if val[pos].to_i == crit.to_i then
-            print " match"
-            ogen_next << v
-        end
-        print "\n"
-    end
-    ogen = ogen_next
-    pos +=1
+    return zeroes, ones
 end
 
-print "Oxygen Generator Rating: #{ogen[0]} (#{ogen[0].to_i(2)})\n\n"
+def find_crit_bit (inarray,pos, meth, tie)
 
-pos = 0
-val=[]
-coscrub = readings
+    zeroes, ones = count_ones_and_zeroes(inarray, pos)
 
-while coscrub.length > 1 do
-    print "coscrub: #{coscrub}\n"
-        ogen_next = []
-    
-        z = 0
-        o = 0
-    
-        coscrub.each do |v|
-            v.strip!
-            val = v.chars
-            if val[pos] == "0" then
-                z +=1
-            else
-                o +=1
-            end
-        end
-        if o < z then
-            crit = "1"
-        else 
-            crit = "0"
-        end
-        print "pos  #{[pos]}, Zeroes: #{z}, Ones: #{o}, Crit: #{crit}\n"
-        
-    
-        coscrub.each do |v|
-            v.strip!
-            val = v.chars
-            print "pos: #{pos} val: #{val} gamma: #{gamma} "
-            print "val: #{val[pos]} gamma: #{gamma[pos]}"
-            if val[pos].to_i == crit.to_i then
-                print " match"
-                ogen_next << v
-            end
-            print "\n"
-        end
-        coscrub = ogen_next
-        pos +=1
+    if zeroes == ones then
+        crit = tie
+    elsif meth == "most" && ones > zeroes then
+        crit = 1
+    elsif meth == "least" && ones < zeroes then
+        crit = 1
+    else
+        crit = 0
     end
-    print "CO2 Scrubber Rating: #{coscrub[0]} (#{coscrub[0].to_i(2)})\n\n"
+    
+    return crit
+end
 
-    life_support = ogen[0].to_i(2) * coscrub[0].to_i(2)
+entries = readings
+pos = 0
+while entries.length > 1 do
+    crit = find_crit_bit(entries, pos, "most", 1)
+    entries = entries.select {|v| v[pos] == crit}
+    pos +=1
+end
+ogen = entries[0]
+ogen_d = ogen.join().to_i(2)
+print "Oxygen Generator Rating: {#{ogen}} (#{ogen_d})\n\n"
+
+entries = readings
+pos = 0
+while entries.length > 1 do
+    crit = find_crit_bit(entries, pos, "least",0)
+    entries = entries.select {|v| v[pos] == crit}
+    pos +=1
+end
+coscrub = entries[0]
+coscrub_d = coscrub.join().to_i(2)
+print "CO2 Scrubber Rating: #{coscrub} (#{coscrub_d})\n\n"
+
+life_support = ogen_d * coscrub_d
 print "life_support: #{life_support}\n"
