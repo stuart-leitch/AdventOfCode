@@ -7,23 +7,12 @@ class Plot
   end
 
   def add_ventline(ventline)
-    if ventline.ishorizontal == true
-      print "ok, I'll add horizontal line\n"
-      ventline.get_coords.each do |c|
-        mark_coord(c)
-      end
-    elsif ventline.isvertical == true
-      print "ok, I'll add vertical line\n"
-      ventline.get_coords.each do |c|
-        mark_coord(c)
-      end
-    else
-      print "only horizontal or vertical lines supported\n"
+    ventline.get_coords.each do |c|
+      mark_coord(c)
     end
   end
 
   def mark_coord(coord)
-    print "Marking [#{coord.x},#{coord.y}]\n"
     @plot_data[coord.y][coord.x] += 1
   end
 
@@ -33,7 +22,7 @@ class Plot
         if c == 0
           print "."
         else
-          print "#{c}"
+          print c
         end
       end
       print "\n"
@@ -74,10 +63,12 @@ class VentLine
   end
 
   def get_coords
-    print_line
+    # print_line
     cl = []
     if ishorizontal == true
+      print "Horizontal\n"
       if @start_x > @end_x
+        print "swap\n"
         tmp = @start_x
         @start_x = @end_x
         @end_x = tmp
@@ -87,7 +78,9 @@ class VentLine
       end
       return cl
     elsif isvertical == true
+      print "Vertical\n"
       if @start_y > @end_y
+        print "swap\n"
         tmp = @start_y
         @start_y = @end_y
         @end_y = tmp
@@ -97,7 +90,30 @@ class VentLine
       end
       return cl
     else
-      # unsupported
+      if @start_x > @end_x # Always work left to right
+        print "swap\n"
+        t_x = @start_x
+        t_y = @start_y
+        @start_x = @end_x
+        @start_y = @end_y
+        @end_x = t_x
+        @end_y = t_y
+      end
+      if @end_y > @start_y # Going down
+        print "Diagonal Down\n"
+        pts = @end_y - @start_y
+        (0..pts).each do |p|
+          cl << Coord.new(@start_x + p, @start_y + p)
+        end
+        return cl
+      else # Going up (y decreasing)
+        print "Diagonal Up\n"
+        pts = @start_y - @end_y
+        (0..pts).each do |p|
+          cl << Coord.new(@start_x + p, @start_y - p)
+        end
+        return cl
+      end
     end
     return @coords
   end
@@ -119,16 +135,16 @@ class VentLine
   end
 end
 
-p = Plot.new(10)
-p.print_plot
+p = Plot.new(1000)
 
-f = File.readlines("test_input")
+f = File.readlines("input")
 f.each do |l|
+  # p = Plot.new(10)
   l.strip!
   p l
   p.add_ventline(VentLine.new(l))
-  p.print_plot
-  p p.danger
-  print "\n"
-  # break
+  # p.print_plot
+  # print "\n"
 end
+p.print_plot
+p p.danger
