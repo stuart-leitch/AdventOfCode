@@ -1,44 +1,37 @@
-class Plot
-  @plot_data = []
+require "digest"
 
+class Plot
   def initialize(size)
-    @size = size
-    @plot_data = Array.new(@size) { Array.new(@size, 0) }
+    @plot_data = Array.new(size) { Array.new(size, 0) }
   end
 
   def add_ventline(ventline)
-    ventline.get_coords.each do |c|
-      mark_coord(c)
-    end
+    ventline.points.each { |point| mark(point) }
   end
 
-  def mark_coord(coord)
-    @plot_data[coord.y][coord.x] += 1
+  def mark(point)
+    @plot_data[point.y][point.x] += 1
   end
 
-  def print_plot
+  def to_s
+    strout = ""
     @plot_data.each do |r|
-      r.each do |c|
-        if c == 0
-          print "."
-        else
-          print c
-        end
-      end
-      print "\n"
+      r.each { |c| strout += (c == 0 ? "." : c.to_s) }
+      strout += "\n"
     end
+    return strout
   end
 
   def danger
     dz = 0
+    maxd = 0
     @plot_data.each do |r|
       r.each do |c|
-        if c > 1
-          dz += 1
-        end
+        dz += 1 if c > 1
+        maxd = c if c > maxd
       end
     end
-    return dz
+    return dz, maxd
   end
 end
 
@@ -46,105 +39,78 @@ class Coord
   attr_reader :x, :y
 
   def initialize(x, y)
-    @x = x
-    @y = y
-  end
-
-  def to_s
-    print "[#{@x},#{@y}]\n"
+    @x, @y = x.to_i, y.to_i
   end
 end
 
 class VentLine
+  attr_reader :points
+
   def initialize(txt)
+    txt.strip!
+    print "#{txt} : "
     c = txt.split(" -> ")
-    @start_x, @start_y = c[0].split(",").map { |z| z.to_i }
-    @end_x, @end_y = c[1].split(",").map { |z| z.to_i }
+    @x1, @y1 = c[0].split(",").map { |z| z.to_i }
+    @x2, @y2 = c[1].split(",").map { |z| z.to_i }
+
+    flip if @x1 > @x2 # Right to Left
+    flip if @x1 == @x2 && @y1 > @y2 # Vertical Up
+
+    calc_points
   end
 
-  def get_coords
-    # print_line
-    cl = []
-    if ishorizontal == true
-      print "Horizontal\n"
-      if @start_x > @end_x
-        print "swap\n"
-        tmp = @start_x
-        @start_x = @end_x
-        @end_x = tmp
-      end
-      (@start_x..@end_x).each do |ex|
-        cl << Coord.new(ex, @start_y)
-      end
-      return cl
-    elsif isvertical == true
-      print "Vertical\n"
-      if @start_y > @end_y
-        print "swap\n"
-        tmp = @start_y
-        @start_y = @end_y
-        @end_y = tmp
-      end
-      (@start_y..@end_y).each do |ex|
-        cl << Coord.new(@start_x, ex)
-      end
-      return cl
+  def flip
+    xt, yt = @x1, @y1
+    @x1, @y1 = @x2, @y2
+    @x2, @y2 = xt, yt
+  end
+
+  def calc_points
+    set_params
+    @points = []
+    (0..@pts).each { |p| @points << Coord.new(@x1 + p * @dx, @y1 + p * @dy) }
+  end
+
+  def set_params
+    if horizontal?
+      @pts = @x2 - @x1
     else
-      if @start_x > @end_x # Always work left to right
-        print "swap\n"
-        t_x = @start_x
-        t_y = @start_y
-        @start_x = @end_x
-        @start_y = @end_y
-        @end_x = t_x
-        @end_y = t_y
-      end
-      if @end_y > @start_y # Going down
-        print "Diagonal Down\n"
-        pts = @end_y - @start_y
-        (0..pts).each do |p|
-          cl << Coord.new(@start_x + p, @start_y + p)
-        end
-        return cl
-      else # Going up (y decreasing)
-        print "Diagonal Up\n"
-        pts = @start_y - @end_y
-        (0..pts).each do |p|
-          cl << Coord.new(@start_x + p, @start_y - p)
-        end
-        return cl
-      end
+      @pts = (@y2 - @y1).abs
     end
-    return @coords
+
+    @dx, @dy = 1, 1 if (@y2 > @y1) # Diagonal going down
+    @dx, @dy = 1, -1 if (@y2 < @y1) # Diagonal going up (y decreasing)
+    @dx, @dy = 0, 1 if vertical?
+    @dx, @dy = 1, 0 if horizontal?
+
+    print "#{@pts} : #{@dx} : #{@dy}\n"
   end
 
-  def ishorizontal
-    if @start_y == @end_y
-      return true
-    end
+  def horizontal?
+    @y1 == @y2
   end
 
-  def isvertical
-    if @start_x == @end_x
-      return true
-    end
+  def vertical?
+    @x1 == @x2
   end
 
   def print_line
-    print "#{@start_x}, #{@start_y}, #{@end_x}, #{@end_y}\n"
+    print "#{@x1}, #{@y1}, #{@x2}, #{@y2}\n"
   end
 end
 
-p = Plot.new(1000)
+grid, file = 1000, "input"
+grid, file = 10, "test_input"
 
-f = File.readlines("input")
-f.each do |l|
-  # p = Plot.new(10)
-  l.strip!
-  p l
+p = Plot.new(grid)
+
+File.readlines(file).each do |l|
   p.add_ventline(VentLine.new(l))
-  # p.print_plot
-  # print "\n"
+  # print "#{p.to_s}\n"
 end
-p.print_plot
+
+print "\n\nFinal Summary\n"
+print "#{p.to_s}\n"
 p p.danger
+plotmd5 = Digest::MD5.hexdigest p.to_s
+p plotmd5 == "285c7c9806741f38a4d73e0187a9325e" ? "Whoop" : "Booooooo!"
