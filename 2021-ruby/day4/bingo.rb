@@ -27,7 +27,7 @@ class Board
     (0..4).each do |c|
       print " #{col_score(c)} "
     end
-    print "\n"
+    print "\t\t#{remaining}\n"
   end
 
   def value(r, c)
@@ -55,6 +55,10 @@ class Board
 
   def bd
     return @board_data
+  end
+
+  def id
+    return @id
   end
 
   def check_for_win
@@ -110,12 +114,12 @@ end
 #   break if cust1.check_for_win == true
 # end
 
-f = File.readlines("numbers")
+f = File.readlines("test_numbers")
 nums = f[0].split(",").map { |l| l.to_i }
 
 brd = []
 brds = []
-File.readlines("boards").each_with_index do |l, i|
+File.readlines("test_boards").each_with_index do |l, i|
   a = l.strip.split(" ").map { |v| v.to_i }
   if a.length == 0
     r = Board.new (brd)
@@ -127,18 +131,27 @@ File.readlines("boards").each_with_index do |l, i|
 end
 
 brds.each do |b|
-  # b.print_board
+  b.print_board
 end
 
-catch :winner do
+catch :end do
+  winners = []
   nums.each do |n|
     print "Number: #{n}\n"
     brds.each do |b|
+      print "Checking #{n} on Board #{b.id}\n"
       b.check_number(n)
       if b.check_for_win == true
-        b.print_board
-        print "WIN: #{b.score}\n"
-        throw :winner
+        if winners.include? b.id
+          #
+        else
+          winners << b.id
+          print "WIN : #{b.score}\n"
+          if winners.length == brds.length
+            b.print_board
+            throw :end
+          end
+        end
       end
     end
   end
