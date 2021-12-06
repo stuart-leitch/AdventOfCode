@@ -9,13 +9,16 @@ entries.each do |entry|
   policy, password = entry.split(":")
   p_range, p_char = policy.split(" ")
   p_min, p_max = p_range.split("-")
-  count = password.count(p_char)
-  print "'#{p_char}' must appear between #{p_min} and #{p_max} times in #{password}: #{count} "
-  if count >= p_min.to_i && count <= p_max.to_i
-    p "good"
+  password.strip!
+  c1 = password.chars[p_min.to_i - 1]
+  c2 = password.chars[p_max.to_i - 1]
+
+  print "'#{p_char}' must appear at #{p_min} or #{p_max} in #{password}: #{c1}, #{c2} "
+  if (c1 == p_char) ^ (c2 == p_char)
     goodies += 1
+    print " --> good\n"
   else
-    p "bad"
+    print " --> bad\n"
   end
 end
 p goodies
