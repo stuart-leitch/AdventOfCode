@@ -1,5 +1,5 @@
 input = "input"
-input = "test_input"
+# input = "test_input"
 
 crabl = File.readlines(input)
 crabl.each do |crabs|
@@ -13,7 +13,8 @@ crabl.each do |crabs|
   ca.each do |c|
     (ca.min..ca.max).each do |pos|
       move = (c - pos).abs
-      poss[pos] += move
+      cost = (move * (move + 1)) / 2
+      poss[pos] += cost
     end
   end
   p poss
