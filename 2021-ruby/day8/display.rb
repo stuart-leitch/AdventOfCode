@@ -1,81 +1,39 @@
 require "set"
 
+def contains?(set, subset)
+  subset.chars.to_set.subset?(set.chars.to_set)
+end
+
 def decode(code)
-  p code
-  p1, p2, ans = code.split("|")
-  p p2
+  obs, output, ans = code.split("|")
 
-  q = p1.split(" ")
-  q2 = []
-  q.each do |e|
-    q2 << e.chars.sort.join
-  end
+  obs = obs.split(" ").map { |e| e.chars.sort.join }.sort_by { |s| s.length }
+  output = output.split(" ").map { |e| e.chars.sort.join }
 
-  p q2
+  codes = [] # Beware! Order matters (i.e. to find code for '9' requires code for '4')
+  codes[1] = obs.find { |e| e.length == 2 }
+  codes[4] = obs.find { |e| e.length == 4 }
+  codes[7] = obs.find { |e| e.length == 3 }
+  codes[8] = obs.find { |e| e.length == 7 }
+  codes[9] = obs.find { |e| e.length == 6 && contains?(e, codes[4]) }
+  codes[3] = obs.find { |e| e.length == 5 && contains?(e, codes[1]) }
+  codes[6] = obs.find { |e| e.length == 6 && !contains?(e, codes[1]) }
+  codes[0] = obs.find { |e| e.length == 6 && contains?(e, codes[1]) && !contains?(e, codes[4]) }
+  codes[2] = obs.find { |e| e.length == 5 && !contains?(codes[9], e) }
+  codes[5] = obs.find { |e| e.length == 5 && contains?(codes[9], e) && !contains?(e, codes[1]) }
 
-  codes = Array.new(10)
-  q2.each do |e|
-    codes[1] = e if e.length == 2
-    codes[4] = e if e.length == 4
-    codes[7] = e if e.length == 3
-    codes[8] = e if e.length == 7
-  end
-  q2.each do |e|
-    next unless e.length == 6
-    if codes[4].chars.to_set.subset?(e.chars.to_set)
-      codes[9] = e
-    elsif !codes[1].chars.to_set.subset?(e.chars.to_set)
-      codes[6] = e
-    else
-      codes[0] = e
-    end
-  end
-
-  q2.each do |e|
-    next unless e.length == 5
-    if codes[1].chars.to_set.subset?(e.chars.to_set)
-      codes[3] = e
-    elsif e.chars.to_set.subset?(codes[9].chars.to_set)
-      codes[5] = e
-    else
-      codes[2] = e
-    end
-  end
-
-  codes.each_with_index do |c, i|
-    # print "#{i}: #{c}\n"
-  end
-
-  q = p2.split(" ")
-  q2 = []
-  q.each do |e|
-    q2 << e.chars.sort.join
-  end
-  p q2
-
-  values = []
-  q2.each do |v|
-    values << codes.index(v)
-  end
-  print "#{values.join.to_i} : #{values.join.to_i == ans.to_i}\n"
-  return values.join.to_i
+  return output.map { |e| codes.index(e.chars.sort.join) }.join.to_i
 end
 
-cnt = 0
-sum = 0
-File.readlines("input").each do |line|
-  # line.strip!
-  obs, output = line.strip.split("|")
-  # p output
-  vals = output.split(" ")
-  # p vals
-  vals.each do |v|
-    # print "#{v} --> #{v.length}\n"
-    cnt += 1 if [2, 3, 4, 7].include?(v.length)
-  end
-  sum += decode(line)
-end
-p cnt
-p sum
+print "Part1: "
+p File.readlines("input").map { |line|
+    line.split("|")[1].split(" ")
+      .map(&:length)
+      .count { |e| [2, 3, 4, 7].include?(e) }
+  }
+    .sum
 
-# decode("acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf")
+print "Part2: "
+p File.readlines("input")
+    .map { |line| decode(line) }
+    .sum
