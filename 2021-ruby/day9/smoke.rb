@@ -1,71 +1,65 @@
 require "set"
 
-$readings = File.readlines("input").map(&:strip).map(&:chars)
+$readings = File.readlines("test_input").map(&:strip).map!(&:chars)
 
-def get_val(r, c)
+def get_val(p)
+  r, c = p[0], p[1]
   cols = $readings[0].length
   rows = $readings.length
   return nil if r >= rows || r < 0 || c >= cols || c < 0
   $readings[r][c].to_i
 end
 
-def get_vals(r, c)
-  vals = []
-  vals << get_val(r - 1, c)
-  vals << get_val(r + 1, c)
-  vals << get_val(r, c - 1)
-  vals << get_val(r, c + 1)
-  return vals
-end
-
-def find_basins()
+def find_low_pts()
   basins = []
-  $readings.each_with_index { |row, r|
-    row.each_with_index { |e, c|
-      if e.to_i < get_vals(r, c).compact.min
+  $readings.each_with_index do |row, r|
+    row.each_with_index do |e, c|
+      if e.to_i < get_neighbour_vals(r, c).min
         basins << [r, c]
       end
-    }
-  }
+    end
+  end
   return basins
 end
 
-def is_basin?(r, c)
-  height = get_val(r, c)
+def is_basin?(p)
+  height = get_val(p)
   height != nil && height != 9
+end
+
+def get_neighbour_vals(r, c)
+  get_neighbours([r, c])
+    .map { |p| get_val(p) }.compact
+end
+
+def get_neighbours(p)
+  r, c = p[0], p[1]
+  return [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]]
 end
 
 def extend_basin(basin)
   tb = Set.new()
-  basin.each do |p|
-    r, c = p[0], p[1]
-    tb << [r - 1, c] if is_basin?(r - 1, c)
-    tb << [r + 1, c] if is_basin?(r + 1, c)
-    tb << [r, c - 1] if is_basin?(r, c - 1)
-    tb << [r, c + 1] if is_basin?(r, c + 1)
+  basin.each do |point|
+    get_neighbours(point).each do |pt|
+      tb << pt if is_basin?(pt)
+    end
   end
+
   sizewas = basin.length
   basin.merge(tb)
-  sizeis = basin.length
-  extend_basin(basin) if sizeis > sizewas
-  return tb
-end
 
-def get_basin_size(r, c)
-  print "basin: #{r},#{c} -- "
-  basin = Set.new()
-  basin << [r, c]
-  extend_basin(basin)
-  print "#{basin} (#{basin.length})\n"
-  return basin.length
+  extend_basin(basin) if basin.length > sizewas
+  return basin
 end
 
 # Part 1
-p basins = find_basins
-p basins.length
-p basins.each.map { |b| get_val(b[0], b[1]) }.reduce(0) { |c, e| c + 1 + e }
+p low_points = find_low_pts
+p low_points.count
+p low_points.each.map { |lpt| get_val(lpt) }
+    .reduce(0) { |risk, height| risk + (1 + height) }
 
 # Part 2
-p basins.each.map { |b| get_basin_size(b[0], b[1]) }
+p low_points.each.map { |lpt| extend_basin(Set[lpt]) }
+    .map(&:size)
     .sort.reverse.slice(0, 3)
-    .reduce(1) { |sum, num| sum * num }
+    .reduce(1) { |product, size| product * size }
