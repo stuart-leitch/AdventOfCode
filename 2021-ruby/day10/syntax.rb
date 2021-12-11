@@ -1,24 +1,51 @@
-$readings = File.readlines("input").map(&:strip).map!(&:chars)
+$readings = File.readlines("test_input").map(&:strip).map!(&:chars)
 OPENERS = ["(", "[", "{", "<"]
 CLOSERS = [")", "]", "}", ">"]
 POINTS = [3, 57, 1197, 25137]
+POINTS2 = [1, 2, 3, 4]
 
-points = []
-$readings.each do |line|
+rpoints = []
+aps = 0
+$readings.each_with_index do |line, row_num|
+  status = ""
+  points = []
   stack = []
-  line.each do |c|
-    if OPENERS.include? c
-      stack.push c
+  line.each do |symbol|
+    if OPENERS.include? symbol
+      stack.push symbol
+      # print "+"
     else
       n = stack.pop()
-      if OPENERS.index(n) != CLOSERS.index(c)
-        print "got #{c}, expected #{n}\n"
-        points << POINTS[CLOSERS.index(c)]
+      if OPENERS.index(n) != CLOSERS.index(symbol)
+        status = "CORRUPT"
+        points << POINTS[CLOSERS.index(symbol)]
         break
+      else
+        # print "-"
       end
     end
-    p stack
   end
+  if status == "CORRUPT"
+    print "#{row_num}: #{status} #{line.join.strip} #{points.sum}\n"
+    rpoints << points.sum
+    next
+  end
+
+  if stack.length == 0
+    print "happy\n"
+  else
+    status = "INCOMPLETE {#{stack.join}}"
+    ap = []
+    while stack.length > 0
+      z = stack.pop()
+      # cl = CLOSERS[OPENERS.index(z)]
+      ct = POINTS2[OPENERS.index(z)]
+      ap << ct
+    end
+    acc = 0
+    acc = ap.reduce(0) { |acc, el| ((5 * acc) + el.to_i) }
+    aps = acc
+  end
+  print "#{row_num}: #{status} #{line.join.strip} #{aps}\n"
 end
-p points.count
-p points.sum
+print "#{rpoints.count},  #{rpoints.sum}\n"
