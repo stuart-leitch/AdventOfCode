@@ -1,38 +1,47 @@
 require "set"
 
-b, e = File.readlines("test_input", "\n\n")
+b, e = File.readlines("input", "\n\n")
 
 base = b.strip
-base = base.chars
 p base
+base = base.chars
+pairs = {}
+(base.count - 1).times { |i|
+  pairs[base[i] + base[i + 1]] = 1
+}
+# p pairs
 # @dots = dots.map { |d| d.split(",") }.map { |d| [d[0].to_i, d[1].to_i] }
 
 expansions = e.split("\n")
 expansions = expansions.map { |e| e.split(" -> ") }
 expansions = expansions.map { |e, f| (e << f).chars }
+expansions = expansions.map { |e| [e[0] + e[1], e[0] + e[2], e[2] + e[1]] }
 
-p expansions
+# p expansions.each { |e| "#{e}\n" }
 
-# p base.length
-
-next_string = ""
-4.times do
-  next_string = base[0]
-  (base.length - 1).times do |i|
-    insertion = expansions.select { |e| e[0] == base[i] && e[1] == base[i + 1] }[0][2]
-    print "#{base[i]} <#{insertion}> #{base[i + 1]}\n"
-    # next_string << base[i]
-    next_string << insertion
-    next_string << base[i + 1]
-    # p next_string
+10.times do |r|
+  p r
+  # p pairs
+  next_pairs = {}
+  pairs.each do |k, v|
+    insertion = expansions.select { |e| e[0] == k }[0]
+    i1, i2, i3 = insertion
+    # print "<#{k}>, <#{v}>, <#{insertion}>\n"
+    next_pairs[i2] == nil ? next_pairs[i2] = v : next_pairs[i2] += v
+    next_pairs[i3] == nil ? next_pairs[i3] = v : next_pairs[i3] += v
+    # p next_pairs
   end
-  p next_string
-  p next_string.length
-  base = next_string
+  pairs = next_pairs
+  pairs.values.sum
 end
 
-p base
-out = next_string.chars.tally
-p out.values.max
-p out.values.min
-p out.values.max - out.values.min
+tots = {}
+pairs.each do |k, v|
+  tots[k[0]] == nil ? tots[k[0]] = v : tots[k[0]] += v
+  tots[k[1]] == nil ? tots[k[1]] = v : tots[k[1]] += v
+end
+p tots
+
+p tots.values.max / 2
+p tots.values.min / 2
+p tots.values.max / 2 - tots.values.min / 2
