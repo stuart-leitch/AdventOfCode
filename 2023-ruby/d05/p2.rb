@@ -57,7 +57,7 @@ end
 min_location = 2_147_483_647
 num_seeds = 0
 seeds.each_slice(2) do |a, b|
-  a.upto(a + b - 1).each do |seed|
+  a.upto(a + b - 1).each do |_seed|
     num_seeds += 1
     loc = seed2location(seed)
     if loc < min_location
@@ -66,7 +66,6 @@ seeds.each_slice(2) do |a, b|
     end
   end
 
-  # a.upto(a + b - 1).each { |_seed| num_seeds += 1 }
   p b
 end
 print "\n"
