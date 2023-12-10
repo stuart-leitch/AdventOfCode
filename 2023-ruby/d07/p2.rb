@@ -14,13 +14,13 @@ def get_type(hand)
     [2, 2, 1] => '2P',
     [2, 1, 1, 1] => 'P',
     [1, 1, 1, 1, 1] => 'HC'
-  }
+  }.freeze
   types[hand.split('').uniq.map { |k| hand.count(k) }.sort.reverse]
 end
 
 def beats?(hand1, hand2)
-  type1 = improve_hand(hand1)
-  type2 = improve_hand(hand2)
+  type1 = improved_hand_type(hand1)
+  type2 = improved_hand_type(hand2)
   if type1 != type2
     TYPE_SCORE[type1] > TYPE_SCORE[type2]
   else
@@ -35,7 +35,7 @@ def beats?(hand1, hand2)
   end
 end
 
-def improve_hand(hand)
+def improved_hand_type(hand)
   bump = { '5' => '5', '4' => '5', 'FH' => '4', '3' => '4', '2P' => 'FH', 'P' => '3', 'HC' => 'P' }
 
   improved_hand_type = get_type(hand)
@@ -43,20 +43,31 @@ def improve_hand(hand)
   hand.count('J').times do
     improved_hand_type = bump[improved_hand_type]
   end
-  print "  #{hand} (#{get_type(hand)}) =#{hand.count('J')}=> #{improved_hand_type}\n"
+  # print "  #{hand} (#{get_type(hand)}) =#{hand.count('J')}=> #{improved_hand_type}\n"
   improved_hand_type
 end
 
-hands = []
-File.open(ARGV[0]).readlines.map(&:chomp).each do |line|
-  hand, bid = line.split
-  hands << { hand:, bid: bid.to_i }
+def score(hand)
+  scr = TYPE_SCORE[improved_hand_type(hand)].to_s.rjust(2, '0')
+  hand.split('').each do |card|
+    scr << CARD_SCORE[card].to_s.rjust(2, '0')
+  end
+  scr
 end
 
-total = 0
+hands = File.open(ARGV[0]).readlines.map(&:chomp).map do |line|
+  hand, bid = line.split
+  { hand:, bid: bid.to_i, score: score(hand), type: get_type(hand), improved: improved_hand_type(hand) }
+end
+
 hands.sort! { |a, b| beats?(a[:hand], b[:hand]) ? 1 : -1 }
-hands.each.with_index(1) do |hand, r|
-  print "#{r} : #{hand[:hand]} (#{get_type(hand[:hand])} ~~ #{improve_hand(hand[:hand])}) (#{hand[:bid]}) ==> #{r * hand[:bid]}\n"
-  total += r * hand[:bid]
+
+hands.each_cons(2) do |hand1, hand2|
+  print "ALARM! #{hand1} #{hand2}\n" if hand1[:score] >= hand2[:score]
+end
+
+total = hands.each_with_index.reduce(0) do |sum, (hand, r)|
+  print "#{r + 1} : #{hand[:hand]} (#{get_type(hand[:hand])} ~~ #{improved_hand_type(hand[:hand])}) (#{hand[:bid]}) ==> #{(r + 1) * hand[:bid]}\n"
+  sum += (r + 1) * hand[:bid]
 end
 print "Total: #{total}\n"
