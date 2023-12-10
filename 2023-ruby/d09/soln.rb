@@ -1,15 +1,17 @@
 # frozen_string_literal: true
 
+def differences(array)
+  array.each_cons(2).map { |v1, v2| v2 - v1 }
+end
+
 def calc_next_value(history)
   return 0 if history.count(0) == history.size
 
-  history[-1] + calc_next_value(history.each_cons(2).map { |v1, v2| v2 - v1 })
+  history[-1] + calc_next_value(differences(history))
 end
 
 def calc_prev_value(history)
-  return 0 if history.count(0) == history.size
-
-  history[0] - calc_prev_value(history.each_cons(2).map { |v1, v2| v2 - v1 })
+  calc_next_value(history.reverse)
 end
 
 print 'Part 1: '
