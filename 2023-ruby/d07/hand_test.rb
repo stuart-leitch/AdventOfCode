@@ -27,6 +27,7 @@ class HandTest < Test::Unit::TestCase
     assert_equal '5',  Hand.new('JJJJJ').type
 
     assert_equal 'P',  Hand.new('J3J87').type
+    assert_equal '3',  Hand.new('J3J8J').type
   end
 
   def test_score
@@ -58,6 +59,7 @@ class HandTest < Test::Unit::TestCase
     assert_equal '5',  Hand.new('JJJJJ').improved_type
 
     assert_equal '3',  Hand.new('J3J87').improved_type
+    assert_equal '4',  Hand.new('J3J8J').improved_type
   end
 
   def test_improved_score

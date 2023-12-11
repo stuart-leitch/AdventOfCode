@@ -8,7 +8,7 @@ hands = File.open(ARGV[0]).readlines.map(&:chomp).map do |line|
 end
 
 # hands.sort_by!(&:improved_score)
-hands.sort { |a, b| a.beats_old?(b.hand) ? 1 : -1 }
+hands.sort! { |a, b| a.beats_old?(b.hand) ? 1 : -1 }
 
 hands.each_cons(2) do |hand1, hand2|
   if hand1.improved_score > hand2.improved_score

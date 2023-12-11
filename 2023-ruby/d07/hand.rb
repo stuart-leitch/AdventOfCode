@@ -84,6 +84,14 @@ def set_improved_type
 
   return unless @hand.include?('J')
 
+  if @type == 'P' && @hand.count('J') == 2
+    @improved_type = '3'
+    return
+  end
+  if @type == '3' && @hand.count('J') == 3
+    @improved_type = '4'
+    return
+  end
   @hand.count('J').times do
     @improved_type = bump[@improved_type]
   end
