@@ -4,7 +4,8 @@ universe = File.readlines(ARGV[0]).map(&:chomp).map(&:chars)
 width = universe.first.length
 height = universe.length
 
-columns = Array.new(width, 0)
+column_count = Array.new(width, 0)
+row_count = Array.new(width, 0)
 
 expanded_universe = []
 universe.each do |row|
@@ -12,7 +13,7 @@ universe.each do |row|
   expanded_universe << row
   expanded_universe << row if row.count('#').zero?
   row.each_with_index do |cell, c|
-    columns[c] += 1 if cell == '#'
+    column_count[c] += 1 if cell == '#'
   end
 end
 
@@ -21,12 +22,12 @@ expanded_universe.each do |row|
   new_row = []
   row.each_with_index do |cell, c|
     new_row << cell
-    new_row << '.' if columns[c].zero?
+    new_row << '.' if column_count[c].zero?
   end
   more_expanded_universe << new_row
 end
 
-p columns
+p column_count
 
 pp expanded_universe
 
